@@ -1,13 +1,6 @@
 // play.js
 
-var name = getURLParameter("name"), page;
-
-(function () {
-	if (!isValidGameCode(getURLParameter("code"))) {
-		alert("Invalid Game Code!");
-		location.pathname = "";
-	}
-})();
+var name = getURLParameter("name"), page, startGame = false, submittedAnswer = "", submittedVote = 0;
 
 function loadPage(data) {
 	var html = "";
@@ -209,28 +202,45 @@ function loadPage(data) {
 	}
 }
 
+function clearCache() {
+	if (page != "waiting_for_people") {
+		startGame = false;
+	}
+	else if (page != "question") {
+		submittedAnswer = "";
+	}
+	else if (page != "vote" && page != "view_vote") {
+		submittedVote = 0;
+	}
+}
+
 var requestDataHttp = new XMLHttpRequest();
 requestDataHttp.addEventListener("load", function () {
-	var data = this.responseText;
+	var data = decodeURI(this.responseText);
 	var lastPage = page;
 	page = getParameter("page", data);
 	if (lastPage !== page) {
 		loadPage(data);
+		clearCache();
 	}
 });
 function requestData() {
-	requestDataHttp.open("GET", "/play-get-data");
+	var additionalData = "&";
+	if (startGame == true) additionalData += "start=true&";
+	if (submittedAnswer != "") additionalData += "answer=" + submittedAnswer + "&";
+	if (submittedVote != 0) additionalData += "vote=" + submittedVote + "&";
+	requestDataHttp.open("GET", "/play-get-data" + location.search + additionalData);
 	requestDataHttp.send();
 }
-var requestDataInterval = setInterval(requestData, 1000);
+var requestDataInterval = setInterval(requestData, 500);
 
 //User Methods
-function submitAnswer(answer) {
-
-}
-function submitVote(num) { //1 or 2
-	
-}
 function startGame() {
-
+	startGame = true;
+}
+function submitAnswer(answer) {
+	submittedAnswer = answer;
+}
+function submitVote(num) {
+	submittedVote = num;
 }

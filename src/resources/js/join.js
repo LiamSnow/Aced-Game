@@ -1,8 +1,5 @@
 // join.js
 
 function join(code, name) {
-	if (isValidGameCode(code)) {
-		//redirect to /join?code=CODE&name=NAME
-	}
-	else alert("Invalid Game Code!");
+	location.href = location.origin + "/play?code=" + code + "&name=" + encodeURI(name);
 }

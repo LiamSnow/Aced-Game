@@ -1,9 +1,5 @@
-function isValidGameCode(code) {
-	return true;
-}
-
 function getURLParameter(name) {
-	return getParameter(name, location.search);
+	return getParameter(name, decodeURI(location.search));
 }
 
 function getParameter(name, data) {

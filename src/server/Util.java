@@ -48,4 +48,22 @@ public class Util {
 			ret += before + str + after;
 		return ret;
 	}
+	
+	public static String getParameter(String name, String data) {
+		try {
+			int firstIndex = data.indexOf(name + "=") + name.length() + 1;
+			int lastIndex = data.indexOf("&", firstIndex);
+			if (lastIndex == -1)
+				lastIndex = data.length() - 1;
+			if (firstIndex > -1 && lastIndex > -1 && firstIndex < data.length() && lastIndex < data.length() && firstIndex < lastIndex)
+				return data.substring(firstIndex, lastIndex);
+		} catch (Exception e) { e.printStackTrace(); }
+		return "";
+	}
+	public static int getParameterInt(String name, String data) {
+		try {
+			return Integer.parseInt(getParameter(name, data));
+		} catch (Exception e) { e.printStackTrace(); }
+		return -1;
+	}
 }
