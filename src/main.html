@@ -1,0 +1,46 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1" />
+
+	<meta name="theme-color" content="#171a1f" />
+	<meta name="background_color" content="#171a1f" />
+	<link rel="shortcut icon" href="">
+
+	<title>Game: ${title}</title>
+
+	<link href="resources/imports/material.css" type="text/css" rel="stylesheet" />
+	<link href="resources/css/main.css" type="text/css" rel="stylesheet" />
+	${css}
+</head>
+<body>
+	<container>
+		${content}
+	</container>
+
+	<!--<footer>
+		<footer-section>
+			<footer-top>
+				<div>
+					<div>
+						This site is created using HTML, CSS and Javascript along with <a href="https://material.io/" target="_blank">Google's Material Desing Components</a>.
+						This website is also hosted through
+						<a href="https://cloud.google.com/" target="_blank">Google Cloud</a>.
+					</div>
+				</div>
+			</footer-top>
+		</footer-section>
+	</footer>-->
+
+	<transitions>
+		<page-fade--open></page-fade--open>
+		<page-fade--close></page-fade--close>
+	</transitions>
+
+	<script src="resources/imports/material.js" type="text/javascript"></script>
+	<script>mdc.autoInit();</script>
+	<script src="resources/js/main.js"></script>
+	${javascript}
+</body>
+</html>
