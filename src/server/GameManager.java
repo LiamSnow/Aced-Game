@@ -2,7 +2,6 @@ package server;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,11 +42,12 @@ public class GameManager {
 			int code = Util.getParameterInt("code", query);
 			String name = Util.getParameter("name", query);
 			Game game = getGame(code);
-			if (game == null)
+			if (game == null) {
 				game = new Game(code, name);
-			return URLEncoder.encode(game.handleUserUpdate(query, name), "UTF-8");
+				games.add(game);
+			}
+			return game.handleUserUpdate(query, name);//URLEncoder.encode(, "UTF-8");
 		} catch (UnsupportedEncodingException e) { e.printStackTrace(); }
 		return "?";
 	}
-
 }

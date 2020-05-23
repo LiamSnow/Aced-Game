@@ -1,13 +1,16 @@
 // play.js
 
-var name = getURLParameter("name"), page, startGame = false, submittedAnswer = "", submittedVote = 0;
+//TODO: header, leaderboard/podium, highlight winner
+//TODO Java: kick afk players
+
+var name = getURLParameter("name"), page, requestStartGame = false, submittedAnswer = "", submittedVote = 0;
 
 function loadPage(data) {
 	var html = "";
 	if (page == "waiting_for_people") {
 		html = `
 			<div style="font-size: 40px;">Waiting for people to join...</div>
-			<div style="font-size: 25px;">NUMPEOPLE people in</div>
+			<div style="font-size: 25px;" class="numpeople-in">NUMPEOPLE people in</div>
 		`;
 		html = html.replace(/NUMPEOPLE/g, getParameter("numpeople", data));
 	}
@@ -20,7 +23,7 @@ function loadPage(data) {
 					<span class="mdc-button__label">Start</span>
 				</button>
 			</div>
-			<div style="font-size: 25px;">NUMPEOPLE people in</div>
+			<div style="font-size: 25px;" class="numpeople-in">NUMPEOPLE people in</div>
 		`;
 		html = html.replace(/NUMPEOPLE/g, getParameter("numpeople", data));
 	}
@@ -44,10 +47,18 @@ function loadPage(data) {
 				</button>
 			</div>
 			<time-left>TIME seconds left</time-left>
-			<number-submitted>SUBMITTED/NUMPEOPLE submitted</number-submitted>
+			<number-submitted>SUBMITTED submitted</number-submitted>
 		`;
-		html = html.replace(/NUMPEOPLE/g, getParameter("numpeople", data));
 		html = html.replace(/QUESTION/g, getParameter("question", data));
+		html = html.replace(/TIME/g, getParameter("time", data));
+		html = html.replace(/SUBMITTED/g, getParameter("submitted", data));
+	}
+	else if (page == "waiting_for_answers") {
+		html = `
+			<div style="font-size: 40px;">Waiting for people to answer...</div>
+			<time-left>TIME seconds left</time-left>
+			<number-submitted>SUBMITTED submitted</number-submitted>
+		`;
 		html = html.replace(/TIME/g, getParameter("time", data));
 		html = html.replace(/SUBMITTED/g, getParameter("submitted", data));
 	}
@@ -69,9 +80,8 @@ function loadPage(data) {
 				</card>
 			</cards>
 			<time-left>TIME seconds left</time-left>
-			<number-submitted>SUBMITTED/NUMPEOPLE submitted</number-submitted>
+			<number-submitted>SUBMITTED submitted</number-submitted>
 		`;
-		html = html.replace(/NUMPEOPLE/g, getParameter("numpeople", data));
 		html = html.replace(/QUESTION/g, getParameter("question", data));
 		html = html.replace(/TIME/g, getParameter("time", data));
 		html = html.replace(/SUBMITTED/g, getParameter("submitted", data));
@@ -98,9 +108,8 @@ function loadPage(data) {
 				</card>
 			</cards>
 			<time-left>TIME seconds left</time-left>
-			<number-submitted>SUBMITTED/NUMPEOPLE submitted</number-submitted>
+			<number-submitted>SUBMITTED submitted</number-submitted>
 		`;
-		html = html.replace(/NUMPEOPLE/g, getParameter("numpeople", data));
 		html = html.replace(/QUESTION/g, getParameter("question", data));
 		html = html.replace(/TIME/g, getParameter("time", data));
 		html = html.replace(/SUBMITTED/g, getParameter("submitted", data));
@@ -117,12 +126,12 @@ function loadPage(data) {
 				QUESTION
 			</question>
 			<cards>
-				<card class="mdc-elevation--z24 winner">
+				<card class="mdc-elevation--z24 WINNER1">
 					<card-answer>ANSWER1</card-answer>
 					<card-creator>CREATOR1</card-creator>
 					<card-votes>VOTES1 votes</card-votes>
 				</card>
-				<card class="mdc-elevation--z24">
+				<card class="mdc-elevation--z24 WINNER2">
 					<card-answer>ANSWER2</card-answer>
 					<card-creator>CREATOR2</card-creator>
 					<card-votes>VOTES2 votes</card-votes>
@@ -138,6 +147,13 @@ function loadPage(data) {
 		html = html.replace(/CREATOR2/g, getParameter("creator2", data));
 		html = html.replace(/VOTES1/g, getParameter("votes1", data));
 		html = html.replace(/VOTES2/g, getParameter("votes2", data));
+		try {
+			var votes1 = Number(getParameter("votes1", data));
+			var votes2 = Number(getParameter("votes2", data));
+			if (votes1 != votes2) {
+				html = html.replace("WINNER" + (votes1 > votes2 ? 1 : 2), "winner");
+			}
+		} catch (e) { console.log(e); }
 	}
 	else if (page == "leaderboard") {
 		html = `
@@ -156,6 +172,7 @@ function loadPage(data) {
 			</table>
 			<time-left>TIME seconds left</time-left>
 		`;
+		//html = html.replace(/PLAYERS/g, getParameter("players", data));
 		html = html.replace(/TIME/g, getParameter("time", data));
 	}
 	else if (page == "podium") {
@@ -194,22 +211,25 @@ function loadPage(data) {
 				</a>
 			</div>
 		`;
+		//html = html.replace(/PLAYERS/g, getParameter("players", data));
 		clearInterval(requestDataInterval);
 	}
 	document.querySelector("play-content").innerHTML = html;
 	if (page == "show_winner") {
-		document.querySelector("card.winner").classList.add("winner-anim");
+		try { document.querySelector("card.winner").classList.add("winner-anim"); }
+		catch (e) { }
 	}
+	mdc.autoInit(document.querySelector("play-content"));
 }
 
 function clearCache() {
 	if (page != "waiting_for_people") {
-		startGame = false;
+		requestStartGame = false;
 	}
-	else if (page != "question") {
+	if (page != "question") {
 		submittedAnswer = "";
 	}
-	else if (page != "vote" && page != "view_vote") {
+	if (page != "vote" && page != "view_vote") {
 		submittedVote = 0;
 	}
 }
@@ -217,18 +237,26 @@ function clearCache() {
 var requestDataHttp = new XMLHttpRequest();
 requestDataHttp.addEventListener("load", function () {
 	var data = decodeURI(this.responseText);
+	//console.log(data);
 	var lastPage = page;
 	page = getParameter("page", data);
 	if (lastPage !== page) {
 		loadPage(data);
 		clearCache();
 	}
+	try { document.querySelector("time-left").innerText = getParameter("time", data); } catch (e) { }
+	try { document.querySelector("rank").innerText = getParameter("rank", data); } catch (e) { }
+	try { document.querySelector("round").innerText = getParameter("round", data); } catch (e) { }
+	try { document.querySelector("number-submitted").innerText = getParameter("submitted", data) + " submitted"; } catch (e) { }
+	try { document.querySelector("question").innerHTML = '<div style="font-weight: 600">Question:</div>' + getParameter("question", data); } catch (e) { }
+	try { document.querySelector(".numpeople-in").innerText = getParameter("numpeople", data) + " people in"; } catch (e) { }
 });
 function requestData() {
 	var additionalData = "&";
-	if (startGame == true) additionalData += "start=true&";
+	if (requestStartGame == true) additionalData += "start=true&";
 	if (submittedAnswer != "") additionalData += "answer=" + submittedAnswer + "&";
 	if (submittedVote != 0) additionalData += "vote=" + submittedVote + "&";
+	console.log(additionalData);
 	requestDataHttp.open("GET", "/play-get-data" + location.search + additionalData);
 	requestDataHttp.send();
 }
@@ -236,10 +264,12 @@ var requestDataInterval = setInterval(requestData, 500);
 
 //User Methods
 function startGame() {
-	startGame = true;
+	requestStartGame = true;
 }
 function submitAnswer(answer) {
 	submittedAnswer = answer;
+	try { document.querySelector('#answer').MDCTextField.value = ""; }
+	catch (e) { }
 }
 function submitVote(num) {
 	submittedVote = num;
